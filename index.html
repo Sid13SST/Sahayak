@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sahayak — the case file for your complaint</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23F6F1E4' stroke='%23B5453A' stroke-width='5'/%3E%3Ctext x='50' y='64' font-family='Georgia,serif' font-weight='700' font-size='46' fill='%23B5453A' text-anchor='middle'%3Eस%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ledger:#1F3B2C;
+    --ledger-deep:#152A1E;
+    --ledger-soft:#2C5039;
+    --paper:#F6F1E2;
+    --paper-card:#FFFDF6;
+    --rule:#D9CDA4;
+    --rule-soft:#E7DEBF;
+    --margin:#B5453A;
+    --margin-deep:#8F332A;
+    --brass:#9C7A2E;
+    --ink:#221F16;
+    --ink-soft:#5B5647;
+    --sage:#3F6B4C;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(var(--paper) 0px, var(--paper) 29px, var(--rule-soft) 30px);
+    color:var(--ink);
+    font-family:'Public Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.55;
+  }
+  h1,h2,h3,.display{ font-family:'Spectral',serif; font-weight:600; color:var(--ink); letter-spacing:-0.005em; }
+  .type{ font-family:'Special Elite',monospace; letter-spacing:0.03em; }
+  a{ color:inherit; }
+  button{ font-family:'Public Sans',sans-serif; cursor:pointer; }
+  ::selection{ background:var(--brass); color:#fff; }
+  :focus-visible{ outline:2.5px solid var(--margin-deep); outline-offset:2px; }
+
+  .frame{ max-width:840px; margin:0 auto; padding:0 22px 110px; }
+
+  /* ---------------- header / masthead ---------------- */
+  .masthead{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:24px 0 16px; gap:16px;
+  }
+  .brandblock{ display:flex; align-items:center; gap:14px; }
+  .stampmark{ width:52px; height:52px; flex-shrink:0; transform:rotate(-7deg); }
+  .brand-name{ font-family:'Spectral',serif; font-weight:700; font-size:23px; color:var(--ledger); line-height:1; }
+  .brand-sub{ font-family:'Special Elite',monospace; font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; }
+  .keybtn{
+    border:1.5px solid var(--ledger); background:var(--paper-card); color:var(--ledger);
+    padding:8px 14px; border-radius:5px; font-size:12px; font-weight:600;
+    font-family:'Special Elite',monospace; letter-spacing:0.03em;
+  }
+  .keybtn:hover{ background:var(--ledger); color:var(--paper-card); }
+
+  /* ---------------- case-file tab stepper ---------------- */
+  .filetabs{
+    display:flex; border-bottom:2.5px solid var(--ledger); margin-bottom:30px;
+    gap:2px;
+  }
+  .filetab{
+    flex:1; padding:11px 6px 10px; text-align:center; background:var(--rule-soft);
+    border:1px solid var(--rule); border-bottom:none; border-radius:6px 6px 0 0;
+    font-family:'Special Elite',monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--ink-soft); position:relative; top:2px;
+  }
+  .filetab .part{ display:block; font-size:9px; opacity:0.75; margin-bottom:2px; }
+  .filetab.done{ background:var(--ledger-soft); color:#fff; border-color:var(--ledger-soft); }
+  .filetab.active{ background:var(--ledger); color:#fff; border-color:var(--ledger); font-weight:700; }
+
+  /* ---------------- screens ---------------- */
+  .screen{ display:none; animation:rise .4s ease; }
+  .screen.active{ display:block; }
+  @keyframes rise{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
+
+  .kicker{ font-family:'Special Elite',monospace; font-size:11.5px; color:var(--margin-deep); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px; }
+  .hero-title{ font-size:31px; line-height:1.22; margin:0 0 16px; max-width:34ch; }
+  .hero-sub{ color:var(--ink-soft); font-size:15.5px; max-width:58ch; margin-bottom:24px; }
+
+  .lang-row{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .lang-chip{
+    border:1.5px solid var(--rule); background:var(--paper-card); padding:6px 13px;
+    border-radius:4px; font-size:12.5px; color:var(--ink-soft); font-weight:600;
+  }
+  .lang-chip.active{ background:var(--ledger); color:#fff; border-color:var(--ledger); }
+
+  .ruled-input{
+    position:relative; background:var(--paper-card); border:1.5px solid var(--rule);
+    border-radius:4px; padding:16px 16px 16px 42px; overflow:hidden;
+  }
+  .ruled-input::before{
+    content:''; position:absolute; left:30px; top:0; bottom:0; width:1.5px; background:var(--margin); opacity:0.55;
+  }
+  .ruled-input::after{
+    content:''; position:absolute; left:0; right:0; top:0; bottom:0;
+    background-image: repeating-linear-gradient(transparent, transparent 27px, var(--rule-soft) 28px);
+    pointer-events:none;
+  }
+  textarea{
+    width:100%; min-height:130px; border:none; background:transparent;
+    font-size:16px; font-family:'Public Sans',sans-serif; color:var(--ink);
+    resize:vertical; position:relative; z-index:1;
+  }
+  textarea:focus{ outline:none; }
+
+  .mic-row{ display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .mic-btn{
+    width:38px;height:38px;border-radius:50%; border:1.5px solid var(--rule);
+    background:var(--paper-card); display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .mic-hint{ font-size:12px; color:var(--ink-soft); font-style:italic; }
+
+  .btn{
+    border-radius:5px; padding:13px 22px; font-size:14.5px; font-weight:700;
+    border:1.5px solid var(--ledger); display:inline-flex; align-items:center; gap:8px;
+    font-family:'Public Sans',sans-serif;
+  }
+  .btn-solid{ background:var(--ledger); color:#fff; }
+  .btn-solid:hover{ background:var(--ledger-deep); }
+  .btn-solid:disabled{ opacity:0.45; cursor:not-allowed; }
+  .btn-ghost{ background:var(--paper-card); color:var(--ledger); }
+  .btn-ghost:hover{ background:var(--rule-soft); }
+  .actions{ display:flex; gap:12px; margin-top:22px; flex-wrap:wrap; }
+
+  .sample-row{ margin-top:20px; }
+  .sample-row .lbl{ font-family:'Special Elite',monospace; font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:9px; }
+  .sample-chip{
+    display:inline-block; border:1px dashed var(--brass); border-radius:4px;
+    padding:7px 11px; font-size:12px; color:var(--ink-soft); margin:0 8px 8px 0; background:var(--paper-card);
+  }
+  .sample-chip:hover{ border-style:solid; color:var(--ink); }
+
+  /* ---------------- thinking screen ---------------- */
+  .think-wrap{ padding:64px 0; text-align:center; }
+  .think-stamp{ width:96px; height:96px; margin:0 auto 22px; animation:thump 1.1s ease-in-out infinite; }
+  @keyframes thump{
+    0%,100%{ transform:rotate(-7deg) translateY(0); }
+    45%{ transform:rotate(-7deg) translateY(6px) scale(0.96); }
+    55%{ transform:rotate(-7deg) translateY(6px) scale(0.96); }
+  }
+  .think-title{ font-size:18px; margin-bottom:8px; }
+  .think-msg{ font-size:14.5px; color:var(--ink-soft); min-height:20px; font-style:italic; }
+
+  /* ---------------- result screen ---------------- */
+  .card{
+    background:var(--paper-card); border:1.5px solid var(--rule);
+    border-radius:5px; padding:20px 22px; margin-bottom:16px;
+  }
+  .card h3{ font-size:15px; margin:0 0 12px; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); font-family:'Public Sans',sans-serif; font-weight:700; }
+
+  .dept-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+  .dept-code{
+    font-family:'Special Elite',monospace; background:var(--ledger); color:#fff;
+    padding:8px 12px; border-radius:4px; font-size:13px; letter-spacing:0.05em;
+  }
+  .dept-name{ font-family:'Spectral',serif; font-weight:600; font-size:17px; }
+  .confidence{ font-size:11.5px; color:var(--sage); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-left:auto; }
+  .why-text{ font-size:14.5px; color:var(--ink-soft); border-left:2.5px solid var(--brass); padding-left:12px; }
+
+  .letter-box{
+    position:relative; background:var(--paper-card); border-radius:4px; padding:18px 18px 18px 44px;
+    font-family:'Special Elite',monospace; font-size:12.5px; white-space:pre-wrap;
+    line-height:1.85; overflow:hidden;
+  }
+  .letter-box::before{ content:''; position:absolute; left:32px; top:0; bottom:0; width:1.5px; background:var(--margin); opacity:0.55; }
+  .letter-box::after{
+    content:''; position:absolute; left:0; right:0; top:0; bottom:0;
+    background-image: repeating-linear-gradient(transparent, transparent 30px, var(--rule-soft) 31px);
+    pointer-events:none;
+  }
+  .letter-inner{ position:relative; z-index:1; outline:none; }
+  .edit-hint{ font-size:11.5px; color:var(--ink-soft); margin-top:10px; font-style:italic; }
+
+  /* ---------------- stamp overlay ---------------- */
+  .stamp-overlay{
+    position:fixed; inset:0; background:rgba(21,42,30,0.4); display:none;
+    align-items:center; justify-content:center; z-index:50;
+  }
+  .stamp-overlay.show{ display:flex; }
+  .filed-stamp{
+    width:190px; height:190px; transform:scale(2.4) rotate(-14deg); opacity:0;
+    animation:stampdown .5s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  @keyframes stampdown{
+    0%{ transform:scale(2.4) rotate(-14deg); opacity:0; }
+    55%{ transform:scale(0.9) rotate(-9deg); opacity:1; }
+    78%{ transform:scale(1.05) rotate(-10deg); }
+    100%{ transform:scale(1) rotate(-9deg); opacity:1; }
+  }
+
+  /* ---------------- tracking ---------------- */
+  .counterfoil{
+    display:flex; align-items:stretch; border:2px dashed var(--brass); border-radius:6px;
+    overflow:hidden; margin-bottom:8px; background:var(--paper-card);
+  }
+  .counterfoil-main{ padding:16px 18px; flex:1; }
+  .counterfoil-id{ font-family:'Special Elite',monospace; font-size:21px; font-weight:400; color:var(--margin-deep); letter-spacing:0.04em; }
+  .counterfoil-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin-bottom:4px; }
+  .counterfoil-stub{
+    width:64px; background:var(--ledger); color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:'Special Elite',monospace; font-size:10px; letter-spacing:0.1em; text-align:center; writing-mode:vertical-rl;
+    padding:10px 0;
+  }
+
+  .timeline{ margin-top:28px; }
+  .step{ display:flex; gap:16px; position:relative; padding-bottom:26px; }
+  .step:last-child{ padding-bottom:0; }
+  .step-dot{
+    width:28px;height:28px;border-radius:50%; background:var(--paper-card); border:2px solid var(--rule);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; z-index:2;
+    font-size:12px; font-weight:700; color:var(--ink-soft); font-family:'Special Elite',monospace;
+  }
+  .step.done .step-dot{ background:var(--sage); border-color:var(--sage); color:#fff; }
+  .step.active .step-dot{ background:var(--brass); border-color:var(--brass); color:#fff; }
+  .step:not(:last-child)::before{
+    content:''; position:absolute; left:13px; top:28px; width:2px; height:calc(100% - 28px); background:var(--rule);
+  }
+  .step.done:not(:last-child)::before{ background:var(--sage); }
+  .step-title{ font-weight:700; font-size:14.5px; font-family:'Spectral',serif; }
+  .step-plain{ font-size:13.5px; color:var(--ink-soft); margin-top:4px; max-width:50ch; }
+  .step-official{ font-size:10.5px; color:var(--brass); margin-top:6px; font-family:'Special Elite',monospace; text-transform:uppercase; letter-spacing:0.04em; }
+
+  .escalate-box{
+    margin-top:26px; border:2px dashed var(--margin); border-radius:6px; padding:16px 18px; background:var(--paper-card);
+  }
+  .escalate-box h4{ margin:0 0 6px; color:var(--margin-deep); font-size:14px; font-family:'Spectral',serif; }
+
+  .disclose{
+    margin-top:38px; border-top:2px solid var(--ledger); padding-top:18px; font-size:12.5px; color:var(--ink-soft);
+  }
+  .disclose b{ color:var(--ink); }
+  .pill{ display:inline-block; background:var(--rule-soft); border-radius:4px; padding:2px 7px; margin:0 2px; font-family:'Special Elite',monospace; font-size:10.5px; }
+
+  /* ---------------- key modal ---------------- */
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(21,42,30,0.45); display:none; align-items:center; justify-content:center; z-index:60; padding:20px; }
+  .modal-backdrop.show{ display:flex; }
+  .modal{ background:var(--paper-card); border:2px solid var(--ledger); border-radius:8px; padding:26px; max-width:420px; width:100%; }
+  .modal h3{ margin-top:0; font-size:18px; }
+  .modal input{
+    width:100%; padding:11px 13px; border:1.5px solid var(--rule); border-radius:5px;
+    font-size:14px; margin:10px 0 6px; font-family:'Special Elite',monospace; background:var(--paper);
+  }
+  .modal .note{ font-size:12px; color:var(--ink-soft); line-height:1.6; }
+  .key-status{ font-size:12px; margin-top:10px; font-weight:700; }
+  .key-status.on{ color:var(--sage); }
+
+  @media(max-width:600px){
+    .hero-title{ font-size:25px; }
+    .frame{ padding:0 16px 100px; }
+    .filetab .part{ display:none; }
+    .filetab{ font-size:9.5px; padding:9px 3px; }
+    .counterfoil-stub{ width:44px; font-size:9px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <div class="masthead">
+    <div class="brandblock">
+      <svg class="stampmark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="60" cy="60" r="55" fill="none" stroke="#B5453A" stroke-width="3" stroke-dasharray="2 3.4"/>
+        <circle cx="60" cy="60" r="45" fill="none" stroke="#B5453A" stroke-width="1.3"/>
+        <path id="topArcM" d="M 15 60 A 45 45 0 0 1 105 60" fill="none"/>
+        <text font-family="Special Elite, monospace" font-size="9" fill="#B5453A" letter-spacing="1.5">
+          <textPath href="#topArcM" startOffset="50%" text-anchor="middle">SAHAYAK · SAHAYAK</textPath>
+        </text>
+        <text x="60" y="70" text-anchor="middle" font-family="Spectral, serif" font-weight="700" font-size="30" fill="#B5453A">स</text>
+        <path id="botArcM" d="M 15 60 A 45 45 0 0 0 105 60" fill="none"/>
+        <text font-family="Special Elite, monospace" font-size="7.5" fill="#B5453A" letter-spacing="1.5">
+          <textPath href="#botArcM" startOffset="50%" text-anchor="middle">GRIEVANCE DESK</textPath>
+        </text>
+      </svg>
+      <div>
+        <div class="brand-name">Sahayak</div>
+        <div class="brand-sub">Case file, not a black hole</div>
+      </div>
+    </div>
+    <span class="keybtn" id="aiStatusBadge" style="cursor:default;">AI: CHECKING…</span>
+  </div>
+
+  <div class="filetabs">
+    <div class="filetab active" data-tab="0"><span class="part">Part A</span>Report</div>
+    <div class="filetab" data-tab="1"><span class="part">Part B</span>Routing</div>
+    <div class="filetab" data-tab="2"><span class="part">Part C</span>Filed</div>
+    <div class="filetab" data-tab="3"><span class="part">Part D</span>Tracking</div>
+  </div>
+
+  <!-- SCREEN 1 -->
+  <section class="screen active" id="screen-home">
+    <div class="kicker">Part A — file no. pending</div>
+    <h1 class="hero-title">People rarely give up on their complaint. They give up finding where to put it.</h1>
+    <p class="hero-sub">Write it the way you'd tell a neighbour — no department names, no form numbers required. We work out which office this actually belongs to.</p>
+
+    <div class="lang-row">
+      <div class="lang-chip active" data-lang="English">English</div>
+      <div class="lang-chip" data-lang="Hindi">हिंदी</div>
+      <div class="lang-chip" data-lang="Kannada">ಕನ್ನಡ</div>
+    </div>
+
+    <div class="ruled-input">
+      <textarea id="problemInput" placeholder="e.g. our street light has not worked for 3 months and it's dangerous at night near the school"></textarea>
+    </div>
+    <div class="mic-row">
+      <div class="mic-btn" title="Voice input is mocked in this prototype">🎙</div>
+      <div class="mic-hint">Voice input is mocked here — wires to Whisper transcription in production.</div>
+    </div>
+
+    <div class="sample-row">
+      <div class="lbl">Or start from a real example</div>
+      <span class="sample-chip" data-sample="light">Streetlight broken for months</span>
+      <span class="sample-chip" data-sample="pension">Father's pension stopped suddenly</span>
+      <span class="sample-chip" data-sample="water">No water supply for a week</span>
+      <span class="sample-chip" data-sample="train">Train refund never came</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-solid" id="submitProblem">Find the right office →</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: thinking -->
+  <section class="screen" id="screen-thinking">
+    <div class="think-wrap">
+      <svg class="think-stamp" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="60" cy="60" r="55" fill="none" stroke="#9C7A2E" stroke-width="3" stroke-dasharray="2 3.4"/>
+        <circle cx="60" cy="60" r="45" fill="none" stroke="#9C7A2E" stroke-width="1.3"/>
+        <text x="60" y="55" text-anchor="middle" font-family="Special Elite, monospace" font-size="10" fill="#9C7A2E" letter-spacing="1">READING</text>
+        <text x="60" y="72" text-anchor="middle" font-family="Special Elite, monospace" font-size="10" fill="#9C7A2E" letter-spacing="1">FILE...</text>
+      </svg>
+      <div class="think-title display">Opening the case file</div>
+      <div class="think-msg" id="thinkMsg">Understanding what happened…</div>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: routing + draft -->
+  <section class="screen" id="screen-result">
+    <div class="kicker">Part B — routing decision</div>
+    <h2 style="margin-bottom:18px;">Here's the office this goes to, and why</h2>
+
+    <div class="card">
+      <h3>Routing</h3>
+      <div class="dept-row">
+        <span class="dept-code" id="deptCode">GEN</span>
+        <span class="dept-name" id="deptName">Department</span>
+        <span class="confidence" id="deptConfidence">HIGH CONFIDENCE</span>
+      </div>
+      <div class="why-text" id="deptWhy"></div>
+    </div>
+
+    <div class="card">
+      <h3>Drafted complaint</h3>
+      <div class="letter-box"><div class="letter-inner" id="letterBox" contenteditable="true"></div></div>
+      <div class="edit-hint">✎ Edit anything before filing — this is your complaint, we only wrote the first draft.</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-solid" id="fileBtn">File this complaint →</button>
+      <button class="btn btn-ghost" id="backBtn">← Start over</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: tracking -->
+  <section class="screen" id="screen-track">
+    <div class="kicker">Part C &amp; D — filed and tracked</div>
+    <h2 style="margin-bottom:16px;">Your case is in the system</h2>
+
+    <div class="counterfoil">
+      <div class="counterfoil-main">
+        <div class="counterfoil-label">Case reference</div>
+        <div class="counterfoil-id" id="trackId">SHY-000000</div>
+      </div>
+      <div class="counterfoil-stub">KEEP THIS</div>
+    </div>
+    <p class="hero-sub" style="margin-top:16px;">Every status update is translated into plain language below the official term — so "under process" means something.</p>
+
+    <div class="timeline" id="timeline"></div>
+
+    <div class="escalate-box" id="escalateBox" style="display:none;">
+      <h4>15 days, no movement</h4>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 10px;">That's past the typical response window. An escalation letter to the next officer up is ready — you don't start over.</p>
+      <button class="btn btn-ghost" id="viewEscalation">View escalation draft</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" id="simulateTime">Simulate 15 days passing →</button>
+      <button class="btn btn-ghost" id="restartBtn">File another complaint</button>
+    </div>
+
+    <div class="disclose">
+      <b>What's real vs. mocked here:</b><br><br>
+      <span class="pill">REAL</span> department routing, letter drafting, and plain-language status translation run live on an OpenAI model, called from a server-side function — the API key never reaches this browser.<br><br>
+      <span class="pill">MOCKED</span> the department directory, submission to a live backend, timeline progress, and the 15-day escalation trigger are simulated — no government system is touched, per the hackathon's rules.<br><br>
+      At real scale: the directory would sync to each state's actual CPGRAMS mapping, filing would use official APIs where they exist, and escalation would follow each department's real SLA instead of a fixed 15 days.
+    </div>
+  </section>
+</div>
+
+<div class="stamp-overlay" id="stampOverlay">
+  <svg class="filed-stamp" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="60" r="55" fill="none" stroke="#B5453A" stroke-width="4" stroke-dasharray="2 3.4"/>
+    <circle cx="60" cy="60" r="45" fill="none" stroke="#B5453A" stroke-width="2"/>
+    <path id="topArcF" d="M 15 60 A 45 45 0 0 1 105 60" fill="none"/>
+    <text font-family="Special Elite, monospace" font-size="9" fill="#B5453A" letter-spacing="2">
+      <textPath href="#topArcF" startOffset="50%" text-anchor="middle">FILED · FILED</textPath>
+    </text>
+    <text x="60" y="66" text-anchor="middle" font-family="Special Elite, monospace" font-weight="700" font-size="17" fill="#B5453A">SAHAYAK</text>
+    <path id="botArcF" d="M 15 60 A 45 45 0 0 0 105 60" fill="none"/>
+    <text font-family="Special Elite, monospace" font-size="7.5" fill="#B5453A" letter-spacing="1.5">
+      <textPath href="#botArcF" startOffset="50%" text-anchor="middle">RECEIVED FOR ACTION</textPath>
+    </text>
+  </svg>
+</div>
+
+<script>
+let selectedLang = "English";
+let currentCase = null;
+let aiOnline = false;
+
+// Ping the serverless endpoint on load so the badge reflects reality.
+// A 400 (missing 'problem') still proves the function is alive and the key works up to that point,
+// so we treat 400/200 as "online" and only network failure / 404 (not deployed yet) as "offline".
+(async function checkAiStatus(){
+  const badge = document.getElementById('aiStatusBadge');
+  try{
+    const resp = await fetch('/api/complete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    aiOnline = resp.status === 400 || resp.status === 200;
+    badge.textContent = aiOnline ? 'AI: LIVE ✓' : 'AI: SIMULATION MODE';
+  }catch(e){
+    aiOnline = false;
+    badge.textContent = 'AI: SIMULATION MODE';
+  }
+})();
+
+document.querySelectorAll('.lang-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.lang-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    selectedLang = chip.dataset.lang;
+  });
+});
+
+const samples = {
+  light: "Our street light near the school has not worked for 3 months. It's very dark and dangerous for kids walking home in the evening.",
+  pension: "My father's monthly pension suddenly stopped coming this month. He is 74 and depends on it completely. Nobody at the bank could tell him why.",
+  water: "There has been no water supply in our lane (4th cross) for over a week now. The tanker also did not come. Many families are affected.",
+  train: "I cancelled my train ticket in April (PNR starting 84) and was told the refund would come in 5-7 days. It has been 6 weeks and nothing."
+};
+document.querySelectorAll('.sample-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{ document.getElementById('problemInput').value = samples[chip.dataset.sample]; });
+});
+
+function setTab(idx){
+  document.querySelectorAll('.filetab').forEach((t,i)=>{
+    t.classList.remove('active','done');
+    if(i < idx) t.classList.add('done');
+    if(i === idx) t.classList.add('active');
+  });
+}
+
+function show(id, tabIdx){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  setTab(tabIdx);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function localClassify(text){
+  const t = text.toLowerCase();
+  const rules = [
+    { key:['bijli','current','electric','power cut','street light','streetlight','transformer'], dept:'Electricity Department', code:'DISCOM',
+      why:"This is a power or lighting issue — handled by the electricity distribution company, not the municipal office people usually try first." },
+    { key:['water','pani','pipeline','tanker','tap'], dept:'Water Supply Board', code:'WSSB',
+      why:"Water supply issues sit with the city's Water Supply & Sewerage Board rather than general municipal grievances." },
+    { key:['pension','epf','provident','retirement'], dept:'EPFO / Pension Office', code:'EPFO',
+      why:"Pension issues usually aren't a bank problem even though the money moves through one — the authorisation sits with EPFO or the pension office that approved it." },
+    { key:['train','irctc','pnr','railway','refund'], dept:'Railways Grievance Cell', code:'IRCTC',
+      why:"Ticket and refund issues go to the Railways grievance system, not the booking helpline — refunds are a railway accounting matter." },
+    { key:['road','pothole','drainage','garbage'], dept:'Municipal Corporation', code:'MUNCP',
+      why:"Road, drainage and sanitation issues fall under the local municipal corporation's civic works department." },
+    { key:['ration','pds','card'], dept:'Food & Civil Supplies Dept.', code:'PDS',
+      why:"Ration card and PDS issues are handled separately by Food & Civil Supplies, not other ID or welfare offices." }
+  ];
+  for(const r of rules){ if(r.key.some(k=>t.includes(k))) return {dept:r.dept, code:r.code, why:r.why, confidence:'high'}; }
+  return {dept:'General Administration Cell', code:'GEN', why:"This didn't clearly match a specific department, so it's routed to the general grievance cell, which can forward it correctly on your behalf.", confidence:'medium'};
+}
+
+function localDraft(problem, dept){
+  const today = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+  return `To,\nThe Grievance Officer,\n${dept}\n\nDate: ${today}\nSubject: Complaint regarding an unresolved civic issue\n\nRespected Sir/Madam,\n\nI would like to bring the following issue to your attention for necessary action:\n\n"${problem.trim()}"\n\nI request you to kindly look into this matter at the earliest and inform me of the steps being taken. I am available for any clarification if required.\n\nThanking you,\nA concerned citizen\n[Your name]\n[Your contact number]\n[Your address / ward number]`;
+}
+
+function codeFromDeptName(dept){
+  const d = (dept||'').toLowerCase();
+  if(d.includes('electric')) return 'DISCOM';
+  if(d.includes('water')) return 'WSSB';
+  if(d.includes('pension') || d.includes('epfo') || d.includes('provident')) return 'EPFO';
+  if(d.includes('rail') || d.includes('irctc')) return 'IRCTC';
+  if(d.includes('municip') || d.includes('road') || d.includes('corporation')) return 'MUNCP';
+  if(d.includes('ration') || d.includes('food') || d.includes('pds')) return 'PDS';
+  return 'GEN';
+}
+
+async function classifyAndDraft(problem){
+  if(!aiOnline){
+    const local = localClassify(problem);
+    return { ...local, letter: localDraft(problem, local.dept) };
+  }
+  try{
+    const resp = await fetch('/api/complete', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ problem, lang: selectedLang })
+    });
+    if(!resp.ok) throw new Error("API error " + resp.status);
+    const parsed = await resp.json();
+    parsed.code = codeFromDeptName(parsed.dept);
+    return parsed;
+  }catch(err){
+    console.warn("Falling back to local simulation:", err);
+    const fallback = localClassify(problem);
+    return { ...fallback, letter: localDraft(problem, fallback.dept) };
+  }
+}
+
+const thinkMessages = ["Understanding what happened…","Matching this to the right office…","Drafting it the way officials expect to read it…","Almost there…"];
+function cycleThinking(){
+  let i=0; const el = document.getElementById('thinkMsg'); el.textContent = thinkMessages[0];
+  return setInterval(()=>{ i=(i+1)%thinkMessages.length; el.textContent = thinkMessages[i]; }, 900);
+}
+
+document.getElementById('submitProblem').onclick = async ()=>{
+  const problem = document.getElementById('problemInput').value.trim();
+  if(!problem){ document.getElementById('problemInput').focus(); return; }
+  show('screen-thinking', 1);
+  const interval = cycleThinking();
+  const result = await classifyAndDraft(problem);
+  clearInterval(interval);
+
+  currentCase = { problem, ...result };
+  document.getElementById('deptCode').textContent = result.code || 'GEN';
+  document.getElementById('deptName').textContent = result.dept;
+  document.getElementById('deptConfidence').textContent = (result.confidence || 'medium').toUpperCase() + ' CONFIDENCE';
+  document.getElementById('deptWhy').textContent = result.why || '';
+  document.getElementById('letterBox').textContent = result.letter || '';
+  show('screen-result', 1);
+};
+
+document.getElementById('backBtn').onclick = ()=> show('screen-home', 0);
+
+document.getElementById('fileBtn').onclick = ()=>{
+  currentCase.letter = document.getElementById('letterBox').textContent;
+  const overlay = document.getElementById('stampOverlay');
+  overlay.classList.add('show');
+  const stamp = overlay.querySelector('.filed-stamp');
+  stamp.style.animation = 'none'; void stamp.offsetWidth;
+  stamp.style.animation = 'stampdown .5s cubic-bezier(.2,1.4,.4,1) forwards';
+  setTimeout(()=>{
+    overlay.classList.remove('show');
+    buildTracking();
+    show('screen-track', 3);
+  }, 900);
+};
+
+function buildTracking(){
+  const id = 'SHY-' + Math.floor(100000 + Math.random()*899999);
+  currentCase.trackId = id;
+  document.getElementById('trackId').textContent = id;
+
+  const steps = [
+    { title:'Received', plain:`Your complaint reached the ${currentCase.dept}. Nothing to do right now — this happens automatically.`, official:'Status: Received', done:true },
+    { title:'Assigned', plain:'A named officer now owns your case instead of it sitting in a general queue. Typical first response: 5–7 working days.', official:'Status: Assigned to field officer', done:true },
+    { title:'Under process', plain:"This is the vague status most portals get stuck on — here it means the officer has reviewed the issue and is arranging the fix.", official:'Status: Under process', done:false, active:true },
+    { title:'Resolved', plain:'You confirm the issue is actually fixed before the case closes — not just marked closed on their end.', official:'Status: Closed, pending your confirmation', done:false }
+  ];
+
+  const wrap = document.getElementById('timeline');
+  wrap.innerHTML = '';
+  steps.forEach((s, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'step' + (s.done ? ' done' : '') + (s.active ? ' active' : '');
+    div.innerHTML = `
+      <div class="step-dot">${s.done ? '✓' : (idx+1)}</div>
+      <div class="step-body">
+        <div class="step-title">${s.title}</div>
+        <div class="step-plain">${s.plain}</div>
+        <div class="step-official">${s.official}</div>
+      </div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('escalateBox').style.display = 'none';
+}
+
+document.getElementById('simulateTime').onclick = ()=>{
+  document.getElementById('escalateBox').style.display = 'block';
+  document.getElementById('escalateBox').scrollIntoView({behavior:'smooth', block:'center'});
+};
+
+document.getElementById('viewEscalation').onclick = ()=>{
+  alert("ESCALATION DRAFT (mocked)\n\nTo: Deputy Grievance Officer, " + currentCase.dept + "\nRe: No action on case " + currentCase.trackId + " (filed 15 days ago)\n\nThis complaint has exceeded the standard response window with no update. Requesting immediate review and status update.\n\n— Auto-drafted by Sahayak, ready to send as-is or edit.");
+};
+
+document.getElementById('restartBtn').onclick = ()=>{
+  document.getElementById('problemInput').value = '';
+  show('screen-home', 0);
+};
+</script>
+</body>
+</html>

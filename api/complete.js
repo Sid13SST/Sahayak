@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    const sys = `You help Indian citizens route and formally draft civic grievances. Given a plain-language complaint, respond ONLY as compact JSON with keys: dept (short department name), why (1-2 plain sentences explaining WHY this department, for someone unfamiliar with government structure), confidence ("high" or "medium"), letter (a complete formally worded complaint letter in ${lang || "English"}, addressed to "The Grievance Officer", with today's date, a subject line, the citizen's issue rewoven formally, and placeholder fields for name/contact/address). No markdown, no commentary, JSON only.`;
+    const sys = `You help Indian citizens route and formally draft civic grievances. Given a plain-language complaint, respond ONLY as compact JSON with keys: dept (a full department name that reads naturally in the sentence "Your complaint reached the ___" — always include a proper suffix like "Department", "Board", "Corporation", or "Cell", never a bare adjective like "Municipal" alone), why (1-2 plain sentences explaining WHY this department, for someone unfamiliar with government structure), confidence ("high" or "medium"), letter (a complete formally worded complaint letter in ${lang || "English"}, addressed to "The Grievance Officer", with today's date, a subject line, the citizen's issue rewoven formally, and placeholder fields for name/contact/address). No markdown, no commentary, JSON only.`;
 
     const openaiResp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

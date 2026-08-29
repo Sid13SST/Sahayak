@@ -508,6 +508,12 @@ function codeFromDeptName(dept){
   return 'GEN';
 }
 
+function ensureDeptSuffix(dept){
+  if(!dept) return dept;
+  const suffixed = /\b(department|board|corporation|cell|office|authority|services|supplies|desk)\b/i.test(dept);
+  return suffixed ? dept : dept.trim() + ' Department';
+}
+
 async function classifyAndDraft(problem){
   if(!aiOnline){
     const local = localClassify(problem);
@@ -521,6 +527,7 @@ async function classifyAndDraft(problem){
     });
     if(!resp.ok) throw new Error("API error " + resp.status);
     const parsed = await resp.json();
+    parsed.dept = ensureDeptSuffix(parsed.dept);
     parsed.code = codeFromDeptName(parsed.dept);
     return parsed;
   }catch(err){
